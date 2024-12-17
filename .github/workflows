@@ -1,0 +1,28 @@
+name: NetflixFrontEnd Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo code
+        uses: actions/checkout@v2
+
+      - name: Build and push image
+        run: |
+          DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }}
+
+          if [ -z $DOCKER_USERNAME ] || [ -z $DOCKER_PASSWORD ]; then
+            echo DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD secrets should be configured
+            exit 1
+          fi
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+
+          IMAGE_NAME=$DOCKER_USERNAME/net_front:${{ github.run_number }}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
